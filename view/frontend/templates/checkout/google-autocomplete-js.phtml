@@ -2,16 +2,28 @@
 
 // phpcs:disable Generic.Files.LineLength
 
-/** @var \Magento\Framework\Escaper $escaper */
-/** @var \Magento\Framework\View\Element\Template $block */
-/** @var \Hyva\Theme\Model\ViewModelRegistry $viewModels */
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
 
-/** @var \Vendic\GoogleAutocomplete\ViewModel\Settings $googleAutocompleteSettings */
-$googleAutocompleteSettings = $viewModels->require(\Vendic\GoogleAutocomplete\ViewModel\Settings::class);
+/** @var Settings $googleAutocompleteSettings */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Vendic\GoogleAutocomplete\ViewModel\Settings;
+use Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\AutoCompleteSelectors;
+use Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\FieldMapping;
+
+$googleAutocompleteSettings = $viewModels->require(Settings::class);
 $apiKey = $escaper->escapeHtml($googleAutocompleteSettings->getApiKey());
 
-/** @var \Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\FieldMapping $fieldMapping */
-$fieldMapping = $viewModels->require(\Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\FieldMapping::class);
+/** @var AutoCompleteSelectors $autocompleteSelectorsViewModel */
+$autocompleteSelectorsViewModel = $viewModels->require(AutoCompleteSelectors::class);
+$autocompleteSelectors = $autocompleteSelectorsViewModel->get();
+
+/** @var FieldMapping $fieldMapping */
+$fieldMapping = $viewModels->require(FieldMapping::class);
 
 if (!$apiKey) {
     return;
@@ -78,7 +90,7 @@ if (!$apiKey) {
     }
 
     function setAutoCompleteInputs() {
-        const querySelectors = ['input#shipping-street-0', 'input#billing-street-0'];
+        const querySelectors = <?= /* @noEscape */ json_encode($autocompleteSelectors) ?>;
         let inputs = [];
 
         // Loop through the query selectors and find the inputs
