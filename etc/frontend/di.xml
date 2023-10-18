@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Map Google address autocomplete API response to Hyva checkout fields -->
     <type name="Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\FieldMapping">
         <arguments>
             <argument name="fieldMapping" xsi:type="array">
@@ -11,6 +12,18 @@
                 <item name="postcode" xsi:type="string">postcode</item>
                 <item name="state" xsi:type="string">region</item>
                 <item name="country" xsi:type="string">country_id</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Google address auto complete works for the following inputs -->
+    <type name="Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\AutoCompleteSelectors">
+        <arguments>
+            <argument name="selectors" xsi:type="array">
+                <item name="billing_street_0" xsi:type="string">input#shipping-street-0</item>
+                <item name="shipping_street_0" xsi:type="string">input#billing-street-0</item>
+                <item name="shipping_company" xsi:type="string">input#shipping-company</item>
+                <item name="billing_company" xsi:type="string">input#billing-company</item>
             </argument>
         </arguments>
     </type>
