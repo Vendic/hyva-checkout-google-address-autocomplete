@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\FieldMapping">
+        <arguments>
+            <argument name="fieldMapping" xsi:type="array">
+                <item name="company" xsi:type="string">company</item>
+                <item name="street" xsi:type="string">street.0</item>
+                <item name="housenumber" xsi:type="string">street.1</item>
+                <item name="city" xsi:type="string">city</item>
+                <item name="postcode" xsi:type="string">postcode</item>
+                <item name="state" xsi:type="string">region</item>
+                <item name="country" xsi:type="string">country_id</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Hyva\Checkout\Model\Form\EntityField\EavEntityAddress\StreetAttributeField">
+        <plugin name="vendic_hyva_checkout_google_address_autocomplete_required_housenumber_field"
+                type="Vendic\HyvaCheckoutGoogleAddressAutocomplete\Plugin\RequiredHousenumberFieldPlugin"/>
+    </type>
+
+    <type name="Hyva\Checkout\Model\Form\AbstractEntityForm">
+        <arguments>
+            <argument name="entityFormModifiers" xsi:type="array">
+                <item name="vendic_housenumber_validation" xsi:type="object">
+                    Vendic\HyvaCheckoutGoogleAddressAutocomplete\Model\Form\Modifier\AddHousenumberFieldValidation
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+</config>

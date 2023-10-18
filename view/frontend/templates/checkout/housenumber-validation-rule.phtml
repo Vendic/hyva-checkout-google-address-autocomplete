@@ -1,0 +1,26 @@
+<?php declare(strict_types=1);
+
+/** @var \Magento\Framework\Escaper $escaper */
+/** @var \Magento\Framework\View\Element\Template $block */
+
+?>
+<script>
+    (() => {
+        if (hyva && hyva.formValidation) {
+            const houseNumberContainsNumber = (postcode) => {
+                const regex = /\d/;
+                return regex.test(postcode);
+            }
+
+            hyva.formValidation.addRule('validate-housenumber', (value, options, field, context) => {
+                const el = field.element;
+                if (options && el.value.length) {
+                    if (! houseNumberContainsNumber(el.value)) {
+                        return '<?= $escaper->escapeJs(__('Oops! That doesn\'t seem like a valid housenumber. Please try again.')) ?>';
+                    }
+                }
+                return true;
+            });
+        }
+    })()
+</script>
