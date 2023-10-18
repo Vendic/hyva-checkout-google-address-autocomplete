@@ -19,3 +19,7 @@ There is no disable/enable configuration. To disable the module, simply remove t
 ### Video
 
 
+https://github.com/Vendic/hyva-checkout-google-address-autocomplete/assets/14849044/70274a49-cdfd-4493-96a0-954dc4a8eff5
+
+
+
