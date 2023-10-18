@@ -3,7 +3,8 @@
     "description": "Hyvä checkout compatibility module for vendic/magento2-google-address-autocomplete",
     "require": {
         "php": "~8.1",
-        "hyva-themes/magento2-hyva-checkout": "^1.1"
+        "hyva-themes/magento2-hyva-checkout": "^1.1",
+        "vendic/magento2-google-address-autocomplete": "^1.5"
     },
     "type": "magento2-module",
     "autoload": {
