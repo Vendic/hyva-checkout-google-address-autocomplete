@@ -1,4 +1,7 @@
-# Google Address Autocomplete for the Hyvä checkout
+# Google Address Autocomplete for the Hyvä checkout 
+
+[![Coding Standard](https://github.com/Vendic/hyva-checkout-google-address-autocomplete/actions/workflows/coding-standard.yml/badge.svg)](https://github.com/Vendic/hyva-checkout-google-address-autocomplete/actions/workflows/coding-standard.yml)
+
 Hyvä checkout compatibility module for [vendic/magento2-google-address-autocomplete](https://github.com/Vendic/magento2-google-address-autocomplete).
 
 https://github.com/Vendic/hyva-checkout-google-address-autocomplete/assets/14849044/70274a49-cdfd-4493-96a0-954dc4a8eff5
