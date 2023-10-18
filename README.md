@@ -1,5 +1,7 @@
-# Hyvä checkout Google Address Autocomplete
+# Google Address Autocomplete for the Hyvä checkout
 Hyvä checkout compatibility module for [vendic/magento2-google-address-autocomplete](https://github.com/Vendic/magento2-google-address-autocomplete).
+
+https://github.com/Vendic/hyva-checkout-google-address-autocomplete/assets/14849044/70274a49-cdfd-4493-96a0-954dc4a8eff5
 
 ## Installation
 ```bash
@@ -16,10 +18,7 @@ Or - even better - via the CLI:
 
 There is no disable/enable configuration. To disable the module, simply remove the API key from the configuration.
 
-### Video
 
-
-https://github.com/Vendic/hyva-checkout-google-address-autocomplete/assets/14849044/70274a49-cdfd-4493-96a0-954dc4a8eff5
 
 
 
