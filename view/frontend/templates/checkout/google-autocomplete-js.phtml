@@ -60,6 +60,10 @@ if (!$apiKey) {
                 });
             });
 
+            if (event.detail.company !== undefined) {
+                address['company'] = event.detail.company;
+            }
+
             updateCheckoutAddressFields(event.detail.addressType, address);
         });
 
@@ -80,6 +84,7 @@ if (!$apiKey) {
                 const identifier = `address.${fieldMappings[key]}`;
 
                 if (value !== undefined && value.length > 0) {
+                    console.debug(`Setting ${identifier} to ${value}`);
                     component.set(identifier, value);
                 }
             });
@@ -154,8 +159,9 @@ if (!$apiKey) {
 
             // Create a custom object with appropriate keys for the event detail
             const eventDetail = {
-                addressComponents: result.address_components, // Assign with a key
-                addressType: getAddressType(element) // Assign with a key
+                company: result.business_status === 'OPERATIONAL' ? result.name : '',
+                addressComponents: result.address_components,
+                addressType: getAddressType(element)
             };
 
             window.dispatchEvent(
