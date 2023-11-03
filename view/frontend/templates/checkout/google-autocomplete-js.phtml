@@ -31,26 +31,15 @@ if (!$apiKey) {
 
 ?>
 <script>
-    document.addEventListener('alpine:init', () => {
-        initAutoCompleteJS();
-    });
-
-    /**
-     * Listen for the 'billing-as-shipping-toggled' event and re-initialize the autocomplete functionality.
-     * Since the billing address is hidden by default, we need to re-initialize the autocomplete functionality
-     */
-    window.addEventListener('billing-as-shipping-toggled', (event) => {
-        setAutoCompleteInputs();
-        initAutocomplete();
-    });
-
-    // Wait for Google Maps JS callback to init autocomplete
-    document.addEventListener('google_maps_js_loaded', () => {
-        initAutocomplete();
-    });
-
+    // Init autocomplete JS when Alpine is ready
+    document.addEventListener('alpine:init', () => { initAutoCompleteJS() });
+    // Re-init autocomplete when billing as shipping is toggled
+    window.addEventListener('billing-as-shipping-toggled', () => { reInitAutocomplete()} );
+    // Wait for Google Maps JS callback to add autocomplete to specified inputs
+    document.addEventListener('google_maps_js_loaded', () => { addAutocompleteToInputs(); });
+    // Listen for address changes from Google Autocomplete
     window.addEventListener('google-autocomplete-address-changed', (event) => {
-        console.log(`google-autocomplete-address-changed for ${event.detail.addressType}`, event.detail);
+        console.debug(`google-autocomplete-address-changed for ${event.detail.addressType}`, event.detail);
 
         if (event.detail.addressType == undefined) {
             console.error('Cannot find address type for event', event);
@@ -60,12 +49,18 @@ if (!$apiKey) {
         const addressType = event.detail.addressType;
         const address = event.detail.address;
 
+        updateCheckoutAddressFields(addressType, address);
+    });
+
+    function updateCheckoutAddressFields(addressType, address) {
+        console.debug(`Updating address fields for ${addressType}`, address);
+
         // The selectors/field mapping can be found in di.xml, meaning they can be changed without modifying this file.
         const fieldMappings = <?= /* @noEscape */ json_encode($fieldMapping->get()) ?>;
 
         const component = Magewire.find(`checkout.${addressType}-details.address-form`);
         if (!component) {
-            console.error('Cannot find Magewire component checkout.shipping-details.address-form');
+            console.error(`Cannot find Magewire component checkout.${addressType}-details.address-form`);
             return;
         }
 
@@ -79,13 +74,21 @@ if (!$apiKey) {
         });
 
         component.save();
-    });
+    }
+
+    /**
+     * Re-initializes the Google Autocomplete functionality.
+     */
+    function reInitAutocomplete() {
+        setAutoCompleteInputs();
+        addAutocompleteToInputs();
+    }
 
     /**
      * Callback function for Google Maps JS.
      */
     function googleReady() {
-        console.log(`Google Maps JS loaded, dispatching event 'google_maps_js_loaded'`);
+        console.debug(`Google Maps JS loaded, dispatching event 'google_maps_js_loaded'`);
         document.dispatchEvent(new Event('google_maps_js_loaded'));
     }
 
@@ -126,7 +129,7 @@ if (!$apiKey) {
      *
      * @returns {void}
      */
-    function initAutocomplete() {
+    function addAutocompleteToInputs() {
         // Loop through the inputs and add Google autocomplete to each input
         window.google_autocomplete_inputs.forEach(element => {
             const autocomplete = new window.google.maps.places.Autocomplete(element);
