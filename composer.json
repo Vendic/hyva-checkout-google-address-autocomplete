@@ -6,6 +6,7 @@
         "hyva-themes/magento2-hyva-checkout": "^1.1",
         "vendic/magento2-google-address-autocomplete": "^1.5"
     },
+    "license": "MIT",
     "type": "magento2-module",
     "autoload": {
         "files": [
