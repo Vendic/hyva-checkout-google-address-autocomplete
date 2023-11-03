@@ -5,8 +5,9 @@
     <type name="Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\FieldMapping">
         <arguments>
             <argument name="fieldMapping" xsi:type="array">
-                <item name="company" xsi:type="string">company</item>
+                <!-- in this case, route is street name key from the API response, it's mapped to the input street.0 -->
                 <item name="route" xsi:type="string">street.0</item>
+                <item name="company" xsi:type="string">company</item>
                 <item name="street_number" xsi:type="string">street.1</item>
                 <item name="locality" xsi:type="string">city</item>
                 <item name="postal_code" xsi:type="string">postcode</item>

@@ -2,7 +2,7 @@
 
 [![Coding Standard](https://github.com/Vendic/hyva-checkout-google-address-autocomplete/actions/workflows/coding-standard.yml/badge.svg)](https://github.com/Vendic/hyva-checkout-google-address-autocomplete/actions/workflows/coding-standard.yml)
 
-Hyvä checkout compatibility module for [vendic/magento2-google-address-autocomplete](https://github.com/Vendic/magento2-google-address-autocomplete).
+[Hyvä checkout](https://www.hyva.io/hyva-checkout.html) compatibility module for [vendic/magento2-google-address-autocomplete](https://github.com/Vendic/magento2-google-address-autocomplete).
 
 
 
@@ -16,6 +16,9 @@ composer require vendic/hyva-checkout-google-address-autocomplete
 ```
 
 ## Configuration
+First, create your Google Maps API key. You can find instructions on how to do this [here](https://developers.google.com/maps/get-started#create-project).
+Also make sure you have valid billing information added to your Google account. 
+
 Set your Google Maps API key in the Magento admin panel under `Stores > Configuration > Vendic > Google Address Autocomplete`.
 
 Or - even better - via the CLI:
@@ -30,5 +33,13 @@ There is no disable/enable configuration. To disable the module, simply remove t
 - [x] Autocomplete for shipping address in the Hyvä checkout
 - [ ] Autocomplete for adding a new address as a logged in user
 - [x] Works on the company field and street 0. To add additonal fields, check `\Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\AutoCompleteSelectors`
-- [x] Housenumber validation to check if the housenumber contains digits.
+- [x] Housenumber validation to check if the housenumber contains digits. 
 
+## Customizations
+### Field mapping
+The field mapping (google address response mapped to Hyvä checkout form inputs) can be modified using di.xml.
+See `etc/frontend/di.xml` for the default mapping, which you can change edit in [your own di.xml](https://devdocs.mage-os.org/docs/main/di_xml#content-syntax).
+
+### Input selectors
+The input selectors (the fields that trigger the autocomplete dropdown ) can be modified using di.xml.
+By default, the autocomplete is triggered for street 0 and company.

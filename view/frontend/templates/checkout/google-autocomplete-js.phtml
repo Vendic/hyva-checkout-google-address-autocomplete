@@ -36,12 +36,17 @@ if (!$apiKey) {
 
         let googleAutoCompleteInputs = [];
 
-        // Init autocomplete JS when Alpine is ready
-        document.addEventListener('alpine:init', () => { initAutoCompleteJS() });
+        // Initialize autocomplete when Magewire is loaded
+        document.addEventListener('magewire:load', () => {
+            initAutoCompleteJS()
+        }, { once: true });
+
         // Re-init autocomplete when billing as shipping is toggled
         window.addEventListener('billing-as-shipping-toggled', () => { reInitAutocomplete()} );
+
         // Wait for Google Maps JS callback to add autocomplete to specified inputs
         document.addEventListener('google_maps_js_loaded', () => { addAutocompleteToInputs(); });
+
         // Listen for address changes from Google Autocomplete
         window.addEventListener('google-autocomplete-address-changed', (event) => {
             console.debug(`google-autocomplete-address-changed for ${event.detail.addressType}`, event.detail);
@@ -84,7 +89,6 @@ if (!$apiKey) {
                 const identifier = `address.${fieldMappings[key]}`;
 
                 if (value !== undefined && value.length > 0) {
-                    console.debug(`Setting ${identifier} to ${value}`);
                     component.set(identifier, value);
                 }
             });
