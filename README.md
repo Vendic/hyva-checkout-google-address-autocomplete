@@ -2,7 +2,7 @@
 
 [![Coding Standard](https://github.com/Vendic/hyva-checkout-google-address-autocomplete/actions/workflows/coding-standard.yml/badge.svg)](https://github.com/Vendic/hyva-checkout-google-address-autocomplete/actions/workflows/coding-standard.yml)
 
-Hyvä checkout compatibility module for [vendic/magento2-google-address-autocomplete](https://github.com/Vendic/magento2-google-address-autocomplete).
+[Hyvä checkout](https://www.hyva.io/hyva-checkout.html) compatibility module for [vendic/magento2-google-address-autocomplete](https://github.com/Vendic/magento2-google-address-autocomplete).
 
 
 
