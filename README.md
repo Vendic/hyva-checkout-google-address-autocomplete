@@ -13,6 +13,7 @@ https://github.com/Vendic/hyva-checkout-google-address-autocomplete/assets/14849
 
 
 ## Installation
+**This extension currently only supports PHP 8.1**, while the Hyvä checkout is also compatible with PHP 7.4. Feel free to create a pull request if you want PHP 7.4 support.
 ```bash
 composer require vendic/hyva-checkout-google-address-autocomplete
 ```
