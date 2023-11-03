@@ -31,174 +31,163 @@ if (!$apiKey) {
 
 ?>
 <script>
-    document.addEventListener('alpine:init', () => {
-        initAutoCompleteJS();
-    });
+    (() => {
+        'use strict';
 
-    /**
-     * Listen for the 'billing-as-shipping-toggled' event and re-initialize the autocomplete functionality.
-     * Since the billing address is hidden by default, we need to re-initialize the autocomplete functionality
-     */
-    window.addEventListener('billing-as-shipping-toggled', (event) => {
-        setAutoCompleteInputs();
-        initAutocomplete();
-    });
+        let googleAutoCompleteInputs = [];
 
-    // Wait for Google Maps JS callback to init autocomplete
-    document.addEventListener('google_maps_js_loaded', () => {
-        initAutocomplete();
-    });
+        // Init autocomplete JS when Alpine is ready
+        document.addEventListener('alpine:init', () => { initAutoCompleteJS() });
+        // Re-init autocomplete when billing as shipping is toggled
+        window.addEventListener('billing-as-shipping-toggled', () => { reInitAutocomplete()} );
+        // Wait for Google Maps JS callback to add autocomplete to specified inputs
+        document.addEventListener('google_maps_js_loaded', () => { addAutocompleteToInputs(); });
+        // Listen for address changes from Google Autocomplete
+        window.addEventListener('google-autocomplete-address-changed', (event) => {
+            console.debug(`google-autocomplete-address-changed for ${event.detail.addressType}`, event.detail);
 
-    window.addEventListener('google-autocomplete-address-changed', (event) => {
-        console.log(`google-autocomplete-address-changed for ${event.detail.addressType}`, event.detail);
-
-        if (event.detail.addressType == undefined) {
-            console.error('Cannot find address type for event', event);
-            return;
-        }
-
-        const addressType = event.detail.addressType;
-        const address = event.detail.address;
-
-        // The selectors/field mapping can be found in di.xml, meaning they can be changed without modifying this file.
-        const fieldMappings = <?= /* @noEscape */ json_encode($fieldMapping->get()) ?>;
-
-        const component = Magewire.find(`checkout.${addressType}-details.address-form`);
-        if (!component) {
-            console.error('Cannot find Magewire component checkout.shipping-details.address-form');
-            return;
-        }
-
-        Object.keys(fieldMappings).forEach(key => {
-            const value = address[key];
-            const identifier = `address.${fieldMappings[key]}`;
-
-            if (value !== undefined && value.length > 0) {
-                component.set(identifier, value);
+            if (event.detail.addressType == undefined) {
+                console.error('Cannot find address type for event', event);
+                return;
             }
+
+            let address = {};
+
+            event.detail.addressComponents.forEach(component => {
+                component.types.forEach(type => {
+                    // Use type as the key and long_name as the value
+                    address[type] = type === 'country' ? component.short_name : component.long_name;
+                });
+            });
+
+            if (event.detail.company !== undefined) {
+                address['company'] = event.detail.company;
+            }
+
+            updateCheckoutAddressFields(event.detail.addressType, address);
         });
 
-        component.save();
-    });
+        function updateCheckoutAddressFields(addressType, address) {
+            console.debug(`Updating address fields for ${addressType}`, address);
+
+            // The selectors/field mapping can be found in di.xml, meaning they can be changed without modifying this file.
+            const fieldMappings = <?= /* @noEscape */ json_encode($fieldMapping->get()) ?>;
+
+            const component = Magewire.find(`checkout.${addressType}-details.address-form`);
+            if (!component) {
+                console.error(`Cannot find Magewire component checkout.${addressType}-details.address-form`);
+                return;
+            }
+
+            Object.keys(fieldMappings).forEach(key => {
+                const value = address[key];
+                const identifier = `address.${fieldMappings[key]}`;
+
+                if (value !== undefined && value.length > 0) {
+                    console.debug(`Setting ${identifier} to ${value}`);
+                    component.set(identifier, value);
+                }
+            });
+
+            component.save();
+        }
+
+        /**
+         * Re-initializes the Google Autocomplete functionality.
+         */
+        function reInitAutocomplete() {
+            setAutoCompleteInputs();
+            addAutocompleteToInputs();
+        }
+
+        function setAutoCompleteInputs() {
+            const querySelectors = <?= /* @noEscape */ json_encode($autocompleteSelectors) ?>;
+
+            // Loop through the query selectors and find the inputs
+            querySelectors.forEach(querySelector => {
+                const input = document.querySelector(querySelector);
+                if (input) {
+                    googleAutoCompleteInputs.push(input);
+                }
+            });
+        }
+
+        /**
+         * Initializes Google Maps JS
+         */
+        function initAutoCompleteJS() {
+
+            setAutoCompleteInputs();
+
+            // Add autocomplete JS
+            const script = document.createElement('script');
+            script.src = 'https://maps.googleapis.com/maps/api/js?key=<?= $escaper->escapeJs($apiKey) ?>&libraries=places&callback=googleReady&region=<?= $escaper->escapeJs($googleAutocompleteSettings->getDefaultCountryId())?>';
+            script.type = 'text/javascript';
+            document.head.append(script);
+        }
+
+        /**
+         * Initializes Google Autocomplete functionality on specified input elements.
+         * Associates an Autocomplete instance with each input element and listens for the 'place_changed' event.
+         * When a place is selected, the 'handleResponse' function is called with the selected place's details.
+         *
+         * @returns {void}
+         */
+        function addAutocompleteToInputs() {
+            // Loop through the inputs and add Google autocomplete to each input
+            googleAutoCompleteInputs.forEach(element => {
+                const autocomplete = new window.google.maps.places.Autocomplete(element);
+                window.google.maps.event.addListener(
+                    autocomplete,
+                    'place_changed', () => handleResponse(autocomplete.getPlace(), element)
+                );
+            });
+        }
+
+        /**
+         * Handles the response from the Google Places API and extracts address information.
+         * Emits a custom event 'google-autocomplete-address-changed' with the extracted address details.
+         *
+         * @param {Object} result - The response object from the Google Places API.
+         * @returns {void}
+         */
+        function handleResponse(result, element) {
+            if (!Array.isArray(result.address_components)) {
+                console.error(`Google Places API response does not contain valid address_components`);
+                return;
+            }
+
+            // Create a custom object with appropriate keys for the event detail
+            const eventDetail = {
+                company: result.business_status === 'OPERATIONAL' ? result.name : '',
+                addressComponents: result.address_components,
+                addressType: getAddressType(element)
+            };
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    'google-autocomplete-address-changed',
+                    {
+                        detail: eventDetail
+                    }
+                )
+            );
+        }
+
+        function getAddressType(element) {
+            if (element.id === undefined) {
+                return null;
+            }
+
+            const match = element.id.match(/^([^-]+)/);
+            return match ? match[1] : null;
+        }
+    })();
 
     /**
      * Callback function for Google Maps JS.
      */
     function googleReady() {
-        console.log(`Google Maps JS loaded, dispatching event 'google_maps_js_loaded'`);
         document.dispatchEvent(new Event('google_maps_js_loaded'));
-    }
-
-    function setAutoCompleteInputs() {
-        const querySelectors = <?= /* @noEscape */ json_encode($autocompleteSelectors) ?>;
-        let inputs = [];
-
-        // Loop through the query selectors and find the inputs
-        querySelectors.forEach(querySelector => {
-            const input = document.querySelector(querySelector);
-            if (input) {
-                inputs.push(input);
-            }
-        });
-
-        // Save the element to the window object so we can access it in the callback
-        window.google_autocomplete_inputs = inputs;
-    }
-
-    /**
-     * Initializes Google Maps JS
-     */
-    function initAutoCompleteJS() {
-
-        setAutoCompleteInputs();
-
-        // Add autocomplete JS
-        const script = document.createElement('script');
-        script.src = 'https://maps.googleapis.com/maps/api/js?key=<?= $escaper->escapeJs($apiKey) ?>&libraries=places&callback=googleReady&region=<?= $escaper->escapeJs($googleAutocompleteSettings->getDefaultCountryId())?>';
-        script.type = 'text/javascript';
-        document.head.append(script);
-    }
-
-    /**
-     * Initializes Google Autocomplete functionality on specified input elements.
-     * Associates an Autocomplete instance with each input element and listens for the 'place_changed' event.
-     * When a place is selected, the 'handleResponse' function is called with the selected place's details.
-     *
-     * @returns {void}
-     */
-    function initAutocomplete() {
-        // Loop through the inputs and add Google autocomplete to each input
-        window.google_autocomplete_inputs.forEach(element => {
-            const autocomplete = new window.google.maps.places.Autocomplete(element);
-            window.google.maps.event.addListener(
-                autocomplete,
-                'place_changed', () => handleResponse(autocomplete.getPlace(), element)
-            );
-        });
-    }
-
-    /**
-     * Handles the response from the Google Places API and extracts address information.
-     * Emits a custom event 'google-autocomplete-address-changed' with the extracted address details.
-     *
-     * @param {Object} result - The response object from the Google Places API.
-     * @returns {void}
-     */
-    function handleResponse(result, element) {
-        const addressType = getAddressType(element);
-
-        if (!Array.isArray(result.address_components)) {
-            console.error(`Google Places API response does not contain valid address_components`);
-            return;
-        }
-
-        const address = {
-            housenumber: '',
-            street: '',
-            city: '',
-            state: '',
-            country: '',
-            postcode: '',
-            company: result.business_status === 'OPERATIONAL' ? result.name : '',
-        };
-
-        const typeMapping = {
-            'street_number': 'housenumber',
-            'route': 'street',
-            'locality': 'city',
-            'administrative_area_level_1': 'state',
-            'country': 'country',
-            'postal_code': 'postcode'
-        };
-
-        result.address_components.forEach(component => {
-            const type = component.types.find(type => typeMapping[type]);
-            if (type) {
-                const propName = typeMapping[type];
-                // For country we want the short value (country_id), for the rest we want the long value.
-                address[propName] = type === 'country' ? component.short_name : component.long_name;
-            }
-        });
-
-        window.dispatchEvent(
-            new CustomEvent(
-                'google-autocomplete-address-changed',
-                {
-                    detail: {
-                        address,
-                        addressType
-                    }
-                }
-            )
-        );
-    }
-
-    function getAddressType(element) {
-        if (element.id === undefined) {
-            return null;
-        }
-
-        const match = element.id.match(/^([^-]+)/);
-        return match ? match[1] : null;
     }
 </script>

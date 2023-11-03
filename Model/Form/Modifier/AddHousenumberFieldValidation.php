@@ -10,6 +10,10 @@ use Hyva\Checkout\Model\Form\EntityFormModifierInterface;
 
 class AddHousenumberFieldValidation implements EntityFormModifierInterface
 {
+    /**
+     * Add validation to the housenumber field if street has only one relative, which should mean that there are two
+     * street fields.
+     */
     public function apply(EntityFormInterface $form): EntityFormInterface
     {
         $form->registerModificationListener(

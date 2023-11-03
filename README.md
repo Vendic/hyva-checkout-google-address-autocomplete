@@ -4,7 +4,11 @@
 
 Hyvä checkout compatibility module for [vendic/magento2-google-address-autocomplete](https://github.com/Vendic/magento2-google-address-autocomplete).
 
-https://github.com/Vendic/hyva-checkout-google-address-autocomplete/assets/14849044/70274a49-cdfd-4493-96a0-954dc4a8eff5
+
+
+https://github.com/Vendic/hyva-checkout-google-address-autocomplete/assets/14849044/631af321-0848-4176-8bdd-50f18019dc87
+
+
 
 ## Installation
 ```bash
@@ -24,11 +28,7 @@ There is no disable/enable configuration. To disable the module, simply remove t
 ## Features
 - [x] Autocomplete for billing address in the Hyvä checkout
 - [x] Autocomplete for shipping address in the Hyvä checkout
+- [ ] Autocomplete for adding a new address as a logged in user
 - [x] Works on the company field and street 0. To add additonal fields, check `\Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\AutoCompleteSelectors`
-- [x] Housenumber validation to check if the housenumber contains digits. 
-
-## Compatibility
-If you want Google Address autocomplete in the "my account"-section, you will need [this module](https://github.com/Vendic/hyva-google-address-autocomplete)
-
-
+- [x] Housenumber validation to check if the housenumber contains digits.
 
