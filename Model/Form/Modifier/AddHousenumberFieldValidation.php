@@ -13,6 +13,10 @@ class AddHousenumberFieldValidation implements EntityFormModifierInterface
     /**
      * Add validation to the housenumber field if street has only one relative, which should mean that there are two
      * street fields.
+     *
+     * This form modifier is included in the module to make sure that the address the autocomplete API returns contains
+     * an housenumber, since it's possible that the API returns an address without a housenumber.
+     * If the housenumber is not present, the address is not valid and the customer cannot continue.
      */
     public function apply(EntityFormInterface $form): EntityFormInterface
     {

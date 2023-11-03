@@ -27,8 +27,11 @@ There is no disable/enable configuration. To disable the module, simply remove t
 - [x] Works on the company field and street 0. To add additonal fields, check `\Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\AutoCompleteSelectors`
 - [x] Housenumber validation to check if the housenumber contains digits. 
 
-## Compatibility
-If you want Google Address autocomplete in the "my account"-section, you will need [this module](https://github.com/Vendic/hyva-google-address-autocomplete)
+## Customizations
+### Field mapping
+The field mapping (google address response mapped to Hyvä checkout form inputs) can be modified using di.xml.
+See `etc/frontend/di.xml` for the default mapping, which you can change edit in [your own di.xml](https://devdocs.mage-os.org/docs/main/di_xml#content-syntax).
 
-
-
+### Input selectors
+The input selectors (the fields that trigger the autocomplete dropdown ) can be modified using di.xml.
+By default, the autocomplete is triggered for street 0 and company.
