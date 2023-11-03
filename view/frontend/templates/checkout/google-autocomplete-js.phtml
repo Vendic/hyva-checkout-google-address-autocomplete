@@ -51,10 +51,16 @@ if (!$apiKey) {
                 return;
             }
 
-            const addressType = event.detail.addressType;
-            const address = event.detail.address;
+            let address = {};
 
-            updateCheckoutAddressFields(addressType, address);
+            event.detail.addressComponents.forEach(component => {
+                component.types.forEach(type => {
+                    // Use type as the key and long_name as the value
+                    address[type] = type === 'country' ? component.short_name : component.long_name;
+                });
+            });
+
+            updateCheckoutAddressFields(event.detail.addressType, address);
         });
 
         function updateCheckoutAddressFields(addressType, address) {
@@ -141,49 +147,22 @@ if (!$apiKey) {
          * @returns {void}
          */
         function handleResponse(result, element) {
-            const addressType = getAddressType(element);
-
             if (!Array.isArray(result.address_components)) {
                 console.error(`Google Places API response does not contain valid address_components`);
                 return;
             }
 
-            const address = {
-                housenumber: '',
-                street: '',
-                city: '',
-                state: '',
-                country: '',
-                postcode: '',
-                company: result.business_status === 'OPERATIONAL' ? result.name : '',
+            // Create a custom object with appropriate keys for the event detail
+            const eventDetail = {
+                addressComponents: result.address_components, // Assign with a key
+                addressType: getAddressType(element) // Assign with a key
             };
-
-            const typeMapping = {
-                'street_number': 'housenumber',
-                'route': 'street',
-                'locality': 'city',
-                'administrative_area_level_1': 'state',
-                'country': 'country',
-                'postal_code': 'postcode'
-            };
-
-            result.address_components.forEach(component => {
-                const type = component.types.find(type => typeMapping[type]);
-                if (type) {
-                    const propName = typeMapping[type];
-                    // For country we want the short value (country_id), for the rest we want the long value.
-                    address[propName] = type === 'country' ? component.short_name : component.long_name;
-                }
-            });
 
             window.dispatchEvent(
                 new CustomEvent(
                     'google-autocomplete-address-changed',
                     {
-                        detail: {
-                            address,
-                            addressType
-                        }
+                        detail: eventDetail
                     }
                 )
             );

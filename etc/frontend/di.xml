@@ -6,11 +6,11 @@
         <arguments>
             <argument name="fieldMapping" xsi:type="array">
                 <item name="company" xsi:type="string">company</item>
-                <item name="street" xsi:type="string">street.0</item>
-                <item name="housenumber" xsi:type="string">street.1</item>
-                <item name="city" xsi:type="string">city</item>
-                <item name="postcode" xsi:type="string">postcode</item>
-                <item name="state" xsi:type="string">region</item>
+                <item name="route" xsi:type="string">street.0</item>
+                <item name="street_number" xsi:type="string">street.1</item>
+                <item name="locality" xsi:type="string">city</item>
+                <item name="postal_code" xsi:type="string">postcode</item>
+                <item name="administrative_area_level_1" xsi:type="string">region</item>
                 <item name="country" xsi:type="string">country_id</item>
             </argument>
         </arguments>
