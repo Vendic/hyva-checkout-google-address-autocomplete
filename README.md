@@ -16,6 +16,9 @@ composer require vendic/hyva-checkout-google-address-autocomplete
 ```
 
 ## Configuration
+First, create your Google Maps API key. You can find instructions on how to do this [here](https://developers.google.com/maps/get-started#create-project).
+Also make sure you have valid billing information added to your Google account. 
+
 Set your Google Maps API key in the Magento admin panel under `Stores > Configuration > Vendic > Google Address Autocomplete`.
 
 Or - even better - via the CLI:
