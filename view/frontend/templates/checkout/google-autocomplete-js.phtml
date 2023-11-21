@@ -87,10 +87,7 @@ if (!$apiKey) {
             Object.keys(fieldMappings).forEach(key => {
                 const value = address[key];
                 const identifier = `address.${fieldMappings[key]}`;
-
-                if (value !== undefined && value.length > 0) {
-                    component.set(identifier, value);
-                }
+                component.set(identifier, value ?? "");
             });
 
             component.save();
