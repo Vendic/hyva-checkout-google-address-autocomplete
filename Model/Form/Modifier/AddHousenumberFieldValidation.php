@@ -5,6 +5,7 @@
 
 namespace Vendic\HyvaCheckoutGoogleAddressAutocomplete\Model\Form\Modifier;
 
+use Hyva\Checkout\Model\Form\EntityFormElementInterface;
 use Hyva\Checkout\Model\Form\EntityFormInterface;
 use Hyva\Checkout\Model\Form\EntityFormModifierInterface;
 
@@ -25,6 +26,10 @@ class AddHousenumberFieldValidation implements EntityFormModifierInterface
             'form:build',
             function (EntityFormInterface $form) {
                 $street = $form->getElement('street');
+
+                if (!$street instanceof EntityFormElementInterface) {
+                    return;
+                }
 
                 $relatives = $street->getRelatives();
 
