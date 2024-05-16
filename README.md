@@ -37,6 +37,7 @@ There is no disable/enable configuration. To disable the module, simply remove t
 - [ ] Autocomplete for adding a new address as a logged in user (see [#5](https://github.com/Vendic/hyva-checkout-google-address-autocomplete/issues/5))
 - [x] Works on the company field and street 0. To add additonal fields, check `\Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\AutoCompleteSelectors`
 - [x] Housenumber validation to check if the housenumber contains digits. 
+- [x] Reload autocomplete JS by triggering a browser event named `re-init-google-autocomplete`. This can be useful when you are removing/adding fields dynamically.
 
 ## Customizations
 ### Field mapping
