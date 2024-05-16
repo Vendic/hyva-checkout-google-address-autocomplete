@@ -44,6 +44,9 @@ if (!$apiKey) {
         // Re-init autocomplete when billing as shipping is toggled
         window.addEventListener('billing-as-shipping-toggled', () => { reInitAutocomplete()} );
 
+        // Allow for re-initialization of the Google Autocomplete functionality via external scripts
+        window.addEventListener('re-init-google-autocomplete', () => { reInitAutocomplete() });
+
         // Wait for Google Maps JS callback to add autocomplete to specified inputs
         document.addEventListener('google_maps_js_loaded', () => { addAutocompleteToInputs(); });
 
