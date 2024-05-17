@@ -2,18 +2,17 @@
 
 // phpcs:disable Generic.Files.LineLength
 
-/** @var Escaper $escaper */
-/** @var Template $block */
-/** @var ViewModelRegistry $viewModels */
-
-/** @var Settings $googleAutocompleteSettings */
-
 use Hyva\Theme\Model\ViewModelRegistry;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 use Vendic\GoogleAutocomplete\ViewModel\Settings;
 use Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\AutoCompleteSelectors;
 use Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\FieldMapping;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var Settings $googleAutocompleteSettings */
 
 $googleAutocompleteSettings = $viewModels->require(Settings::class);
 $apiKey = $escaper->escapeHtml($googleAutocompleteSettings->getApiKey());
@@ -81,7 +80,19 @@ if (!$apiKey) {
             // The selectors/field mapping can be found in di.xml, meaning they can be changed without modifying this file.
             const fieldMappings = <?= /* @noEscape */ json_encode($fieldMapping->get()) ?>;
 
-            const component = Magewire.find(`checkout.${addressType}-details.address-form`);
+            // searching for standard address form and modal address form
+            let component;
+            try {
+                component = Magewire.find(`checkout.${addressType}-details.address-form`);
+            } catch (e) {
+                try {
+                    component = Magewire.find(`checkout.${addressType}-details.address-list.form`);
+                } catch (e) {
+                    console.error(`Cannot find none of Magewire components checkout.${addressType}-details.address-form or checkout.${addressType}-details.address-list.form`);
+                    return;
+                }
+            }
+
             if (!component) {
                 console.error(`Cannot find Magewire component checkout.${addressType}-details.address-form`);
                 return;
@@ -194,4 +205,90 @@ if (!$apiKey) {
     function googleReady() {
         document.dispatchEvent(new Event('google_maps_js_loaded'));
     }
+
+    /**
+     * hyva.modal overrides to catch closing of modal dialog. Original hyva theme modals do not fire modal hide events correctly
+     * on click outside or cancel button, only submit button.
+     * This is needed to move Autocomplete containers back to HTML body before other actions like saved address selection change
+     * remove Autocomplete containers from modal
+     *
+     */
+    (function () {
+        //console.log('hyva.modal.pop override');
+
+        // inject moveToBody() into window.hyva.modal.pop() method when closing the modal other way than submit button
+        let origPop = window.hyva.modal.pop;
+        window.hyva.modal.pop = function () {
+            //console.log('hyva.modal.pop()');
+            origPop();
+            initFixAutocompleteContainersForModal.moveToBody();
+        }
+
+        // inject moveToBody() into window.hyva.modal.eventListeners.click() event (click outside of modal window to close it)
+        // store reference to the original event subscriber function
+        const originalListener = window.hyva.modal.eventListeners.click;
+        // remove the original event subscriber
+        document.removeEventListener('click', originalListener);
+        // declare the new event subscriber function on the global window.hyva.modal.eventListeners object
+        window.hyva.modal.eventListeners.click = event => {
+            originalListener(event);
+            initFixAutocompleteContainersForModal.moveToBody();
+        };
+        // Activate the new event listener
+        document.addEventListener('click', window.hyva.modal.eventListeners.click);
+    })()
+
+    /**
+     * Moving Autocomplete containers from body to modal and back to fix issues with DOM element position outside of modal dialog
+     *
+     * @type {{moveToModal(*): void, moveToBody(): void}}
+     */
+    let initFixAutocompleteContainersForModal = {
+
+        /**
+         * Fix for unable to mouse click results from Autocomplete
+         * which also fixes autocomplete container absolute position within modal dialog
+         *
+         * @param ref
+         */
+        moveToModal(ref) {
+            //console.log('moveToModal()');
+
+            // this.$refs[ref] does not work here so querySelector is used to find modal
+            const target = document.querySelector('div[x-ref="'+ ref +'"]');
+            // Autocomplete containers
+            const mapContainers = document.querySelectorAll('.pac-container');
+
+            // moving element to modal and setting observer to fix autocomplete abosulte position top
+            target.append(...mapContainers);
+        },
+
+        /**
+         * Moving Autocomplete containers from modal back to body when modal closes so containers are not lost after address selection changes.
+         */
+        moveToBody() {
+            //console.log('moveToBody()');
+
+            const target = document.querySelector('body');
+            const mapContainers = document.querySelectorAll('.pac-container');
+
+            target.append(...mapContainers);
+        }
+
+    }
 </script>
+
+<?php
+/**
+ * AlpineJs object catching modal events for logged customers address forms.
+ * Hide modal events are not working correctly so moveToBody() method is injected into window.hyva.modal.pop() and overriding window.hyva.modal.eventListeners.click() event
+ *
+ * Notes:
+ * x-on:modal:hide:shipping-checkout-modal-address-form.window does not trigger for cancel or click outside of modal (hyva.modal incomplete implemenation)
+ * x-on:modal:hide:billing-checkout-modal-address-form.window does not trigger for cancel or click outside of modal (hyva.modal incomplete implemenation)
+ */
+?>
+<div x-data="initFixAutocompleteContainersForModal"
+     x-on:modal:show:shipping-checkout-modal-address-form.window="moveToModal('checkout.shipping-details.address-list.form')"
+     x-on:modal:show:billing-checkout-modal-address-form.window="moveToModal('checkout.billing-details.address-list.form')"
+     >...</div>
