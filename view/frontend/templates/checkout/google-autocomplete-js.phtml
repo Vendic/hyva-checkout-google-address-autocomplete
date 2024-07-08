@@ -81,11 +81,20 @@ if (!$apiKey) {
             // The selectors/field mapping can be found in di.xml, meaning they can be changed without modifying this file.
             const fieldMappings = <?= /* @noEscape */ json_encode($fieldMapping->get()) ?>;
 
-            const component = Magewire.find(`checkout.${addressType}-details.address-form`);
-            if (!component) {
-                console.error(`Cannot find Magewire component checkout.${addressType}-details.address-form`);
-                return;
-            }
+            const form = [
+                'address-form',
+                'address-list.form'
+            ];
+
+            let component;
+
+            form.forEach((form) => {
+                try {
+                    component = Magewire.find(`checkout.${addressType}-details.` + form);
+                } catch (e) {
+                    console.debug(`Cannot update Magewire component checkout.${addressType}-details.` + form);
+                }
+            });
 
             Object.keys(fieldMappings).forEach(key => {
                 const value = address[key];
