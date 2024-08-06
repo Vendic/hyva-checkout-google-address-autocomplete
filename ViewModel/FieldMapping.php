@@ -15,6 +15,6 @@ class FieldMapping implements ArgumentInterface
 
     public function get() : array
     {
-        return $this->fieldMapping;
+        return array_filter($this->fieldMapping);
     }
 }
