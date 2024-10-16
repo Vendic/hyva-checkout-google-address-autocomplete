@@ -97,9 +97,11 @@ if (!$apiKey) {
             });
 
             Object.keys(fieldMappings).forEach(key => {
-                const value = address[key];
+                const dataKeys = key.split('+');
+                const valueToSave = dataKeys.map((key) => address[key]).filter((v) => v);
+
                 const identifier = `address.${fieldMappings[key]}`;
-                component.set(identifier, value ?? "");
+                component.set(identifier,  valueToSave.join(' '));
             });
 
             component.save();

@@ -8,9 +8,17 @@ namespace Vendic\HyvaCheckoutGoogleAddressAutocomplete\Model\Form\Modifier;
 use Hyva\Checkout\Model\Form\EntityFormElementInterface;
 use Hyva\Checkout\Model\Form\EntityFormInterface;
 use Hyva\Checkout\Model\Form\EntityFormModifierInterface;
+use Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\FieldMapping;
 
 class AddHousenumberFieldValidation implements EntityFormModifierInterface
 {
+
+    public function __construct(
+        private readonly FieldMapping $fieldMapping
+    )
+    {
+    }
+
     /**
      * Add validation to the housenumber field if street has only one relative, which should mean that there are two
      * street fields.
@@ -21,25 +29,22 @@ class AddHousenumberFieldValidation implements EntityFormModifierInterface
      */
     public function apply(EntityFormInterface $form): EntityFormInterface
     {
+        $houseNumberFieldIndex = $this->fieldMapping->getHouseNumberFieldIndex();
+        if ($houseNumberFieldIndex === null) {
+            return $form;
+        }
+
         $form->registerModificationListener(
             'addValidationToHousenumber',
             'form:build',
-            function (EntityFormInterface $form) {
+            function (EntityFormInterface $form) use ($houseNumberFieldIndex) {
                 $street = $form->getElement('street');
 
                 if (!$street instanceof EntityFormElementInterface) {
                     return;
                 }
 
-                $relatives = $street->getRelatives();
-
-                // Check if there is only one relative, if not, we don't have a housenumber field
-                // and there is a different setup for the street field.
-                if (count($relatives) !== 1) {
-                    return;
-                }
-
-                $housenumberField = reset($relatives);
+                $housenumberField = $street->getRelatives()[$houseNumberFieldIndex] ?? null;
 
                 if (!$housenumberField) {
                     return;
