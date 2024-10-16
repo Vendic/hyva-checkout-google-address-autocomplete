@@ -4,6 +4,13 @@
 
 /** @var \Magento\Framework\Escaper $escaper */
 /** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Hyva\Theme\Model\ViewModelRegistry $viewModels */
+
+/** @var \Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\FieldMapping $fieldMapping */
+$fieldMapping = $viewModels->require(\Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\FieldMapping::class);
+if ($fieldMapping->getHouseNumberFieldIndex() === null) {
+    return;
+}
 
 ?>
 <script>
