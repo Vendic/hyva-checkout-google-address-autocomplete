@@ -102,9 +102,74 @@ if (!$apiKey) {
                 component.set(identifier, value ?? "");
             });
 
+            // If there is a street_number, put it and address_line_1 in the same input as would be expected
+            if (address['street_number']) {
+                component.set('address.street.0', address['street_number'] + ' ' + (address['route'] ?? ""));
+                component.set('address.street.1', "");
+            }
+
+            // If no locality is set, use a fallback
+            if (!address['locality']) {
+                switch (address['country']) {
+                    case "GB":
+                        // If UK address, city = postal_town
+                        component.set('address.city', address['postal_town']);
+                        break;
+                    default:
+                        component.set('address.city', address['administrative_area_level_2']);
+                        break;
+                }
+            }
+
+
+            // If the region (state/province) is from a select field, set the address.region field appropriately by ID
+            if (getRegionInputField()?.options) {
+                // Value to match against in the select options
+                const labelToSet = address['administrative_area_level_1'];
+                component.set('address.region', getRegionId(labelToSet) ?? '');
+            }
+
+
             component.save();
         }
 
+        /**
+         * Used to fetch the region input field, either shipping or billing
+         * 
+         * @return HTMLSelectElement | null
+         */
+        function getRegionInputField() {
+            let regionSelect = document.getElementById("shipping-region");
+
+            if (!regionSelect) {
+                regionSelect = document.getElementById("billing-region");
+            }
+
+            return regionSelect;
+        }
+
+        /**
+         * Get the index of a region option by label
+         * 
+         * @param {string} label - The label to match against
+         * @return number | null
+         */
+        function getRegionId(label) {
+            // Get the region input, and if it isn't a select, return null
+            const regionSelect = getRegionInputField();
+            if (!regionSelect.options) return null;
+
+            // Iterate through all options, and if there is a label match, return the index
+            for (var i = 0; i < regionSelect.options.length; i++) {
+                if (regionSelect.options[i].text === label) {
+                    return i;
+                }
+            }
+
+            // Failing a match, return null
+            return null;
+        }
+        
         /**
          * Re-initializes the Google Autocomplete functionality.
          */
