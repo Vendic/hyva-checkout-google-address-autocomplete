@@ -1,0 +1,60 @@
+name: 'Setup Magento'
+description: 'Setup Magento'
+inputs:
+  php-version:
+    description: 'PHP version'
+    required: true
+  magento-version:
+    description: 'Magento version'
+    required: true
+outputs:
+  docker-container-name:
+    description: 'Docker container name'
+    value: ${{ steps.variables.outputs.docker_container_name }}
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install xmllint
+      shell: bash
+      run: sudo apt install -y libxml2-utils
+
+    - name: Set variables
+      shell: bash
+      id: variables
+      run: |
+        echo "composer_name=$(cat composer.json | jq .name -r)" >> $GITHUB_OUTPUT
+        echo "extension_name=$(xmllint --xpath 'string(/config/module/@name)' etc/module.xml)" >> $GITHUB_OUTPUT
+        echo "directory=$(cat composer.json | jq .name -r | cut -d '/' -f2)" >> $GITHUB_OUTPUT
+        echo "branch_name=continuous-integration-test-branch-v2" >> $GITHUB_OUTPUT
+        echo "docker_container_name=magento-project-community-edition" >> $GITHUB_OUTPUT
+
+    - name: Start Docker
+      shell: bash
+      run: PHP_VERSION=${{ inputs.php-version }} MAGENTO_VERSION=magento${{ inputs.magento-version }} docker compose -f .github/actions/setup/templates/docker-compose.yml up -d
+
+    - name: Create branch for Composer
+      shell: bash
+      run: git checkout -b ${{ steps.variables.outputs.branch_name }}
+
+    - name: Upload our code into the docker container
+      shell: bash
+      run: docker cp $(pwd) ${{ steps.variables.outputs.docker_container_name }}:/data/extensions/
+
+    - name: Add git safe directory
+      shell: bash
+      run: docker exec ${{ steps.variables.outputs.docker_container_name }} git config --global --add safe.directory /data/extensions/${{ steps.variables.outputs.directory }}
+
+    - name: Install the extension in Magento
+      shell: bash
+      run: docker exec ${{ steps.variables.outputs.docker_container_name }} ./install-composer-package ${{ steps.variables.outputs.composer_name }}:@dev
+
+    - name: Install dev dependencies
+      shell: bash
+      run: |
+        docker exec ${{ steps.variables.outputs.docker_container_name }} bash -c "composer require --dev vendic/magento-coding-standard tddwizard/magento2-fixtures"
+
+    - name: Activate the extension
+      shell: bash
+      run: docker exec ${{ steps.variables.outputs.docker_container_name }} ./retry "php bin/magento module:enable ${{ steps.variables.outputs.extension_name }}"
