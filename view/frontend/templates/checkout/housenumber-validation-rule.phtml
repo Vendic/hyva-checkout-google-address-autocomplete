@@ -1,9 +1,16 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Hyva\Theme\ViewModel\HyvaCsp;
 
 // phpcs:disable Generic.Files.LineLength
 
-/** @var \Magento\Framework\Escaper $escaper */
-/** @var \Magento\Framework\View\Element\Template $block */
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var HyvaCsp $hyvaCsp */
 
 ?>
 <script>
@@ -26,3 +33,4 @@
         }
     })()
 </script>
+<?php $hyvaCsp->registerInlineScript() ?>
