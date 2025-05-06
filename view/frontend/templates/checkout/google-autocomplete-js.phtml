@@ -1,12 +1,6 @@
-<?php declare(strict_types=1);
+<?php
 
-// phpcs:disable Generic.Files.LineLength
-
-/** @var Escaper $escaper */
-/** @var Template $block */
-/** @var ViewModelRegistry $viewModels */
-
-/** @var Settings $googleAutocompleteSettings */
+declare(strict_types=1);
 
 use Hyva\Theme\Model\ViewModelRegistry;
 use Magento\Framework\Escaper;
@@ -14,7 +8,16 @@ use Magento\Framework\View\Element\Template;
 use Vendic\GoogleAutocomplete\ViewModel\Settings;
 use Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\AutoCompleteSelectors;
 use Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\FieldMapping;
+use Hyva\Theme\ViewModel\HyvaCsp;
 
+// phpcs:disable Generic.Files.LineLength
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var Settings $googleAutocompleteSettings */
 $googleAutocompleteSettings = $viewModels->require(Settings::class);
 $apiKey = $escaper->escapeHtml($googleAutocompleteSettings->getApiKey());
 
@@ -204,3 +207,4 @@ if (!$apiKey) {
         document.dispatchEvent(new Event('google_maps_js_loaded'));
     }
 </script>
+<?php $hyvaCsp->registerInlineScript() ?>
