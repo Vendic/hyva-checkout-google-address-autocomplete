@@ -67,7 +67,20 @@ if (!$apiKey) {
             event.detail.addressComponents.forEach(component => {
                 component.types.forEach(type => {
                     // Use type as the key and long_name as the value
-                    address[type] = type === 'country' ? component.short_name : component.long_name;
+                    switch (type) {
+                        case 'country':
+                            address[type] = component.short_name;
+                            break;
+                    <?php if ((int) $googleAutocompleteSettings->getStreetLinesQty() > 2): ?>
+                        case 'street_number':
+                            address[type] = component.long_name.match(/\d+/)[0];
+                            address['street_number_addition'] = component.long_name.match(/[a-zA-Z]+/g) ?
+                                component.long_name.match(/[a-zA-Z]+/g)[0] : '';
+                            break;
+                    <?php endif; ?>
+                        default:
+                            address[type] = component.long_name;
+                    }
                 });
             });
 
@@ -102,7 +115,8 @@ if (!$apiKey) {
             Object.keys(fieldMappings).forEach(key => {
                 const value = address[key];
                 const identifier = `address.${fieldMappings[key]}`;
-                component.set(identifier, value ?? "");
+
+                component.set(identifier, value ?? '');
             });
 
             component.save();

@@ -9,6 +9,7 @@
                 <item name="route" xsi:type="string">street.0</item>
                 <item name="company" xsi:type="string">company</item>
                 <item name="street_number" xsi:type="string">street.1</item>
+                <item name="street_number_addition" xsi:type="string">street.2</item>
                 <item name="locality" xsi:type="string">city</item>
                 <item name="postal_code" xsi:type="string">postcode</item>
                 <item name="administrative_area_level_1" xsi:type="string">region</item>
