@@ -165,7 +165,7 @@ if (!$apiKey) {
             // Iterate through all options, and if there is a label match, return the index
             for (var i = 0; i < regionSelect.options.length; i++) {
                 if (regionSelect.options[i].text === label) {
-                    return i;
+                    return regionSelect.options[i].value;
                 }
             }
 
