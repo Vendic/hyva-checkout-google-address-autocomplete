@@ -1,0 +1,23 @@
+name: Run setup:di:compile
+on: [push]
+
+jobs:
+  compilation:
+    strategy:
+      matrix:
+        include:
+          - PHP_VERSION: php83-fpm
+            MAGENTO_VERSION: 2.4.7
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+        name: Setup Magento community edition
+        id: setup
+        with:
+          php-version: ${{ matrix.PHP_VERSION }}
+          magento-version: ${{ matrix.MAGENTO_VERSION }}
+
+      - name: Run setup:di:compile
+        run: docker exec ${{ steps.setup.outputs.docker-container-name }} ./retry "php bin/magento setup:di:compile"

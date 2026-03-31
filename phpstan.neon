@@ -1,0 +1,11 @@
+parameters:
+    level: 5
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        - '#Variable \$block might not be defined.#'
+        - '#Undefined variable: \$block#'
+    fileExtensions:
+        - php
+        - phtml
+    excludes_analyse:
+        - Test/*
