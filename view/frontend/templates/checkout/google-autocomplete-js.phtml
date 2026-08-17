@@ -20,6 +20,8 @@ use Hyva\Theme\ViewModel\HyvaCsp;
 /** @var Settings $googleAutocompleteSettings */
 $googleAutocompleteSettings = $viewModels->require(Settings::class);
 $apiKey = $escaper->escapeHtml($googleAutocompleteSettings->getApiKey());
+// Mirrors the fallback in Magento\Customer\Helper\Address::getStreetLines()
+$streetLinesQty = (int) $googleAutocompleteSettings->getStreetLinesQty() ?: 2;
 
 /** @var AutoCompleteSelectors $autocompleteSelectorsViewModel */
 $autocompleteSelectorsViewModel = $viewModels->require(AutoCompleteSelectors::class);
@@ -83,6 +85,7 @@ if (!$apiKey) {
 
             // The selectors/field mapping can be found in di.xml, meaning they can be changed without modifying this file.
             const fieldMappings = <?= /* @noEscape */ json_encode($fieldMapping->get()) ?>;
+            const streetLines = <?= /* @noEscape */ $streetLinesQty ?>;
 
             const form = [
                 'address-form',
@@ -105,8 +108,8 @@ if (!$apiKey) {
                 component.set(identifier, value ?? "");
             });
 
-            // If there is a street_number, put it and address_line_1 in the same input as would be expected
-            if (address['street_number']) {
+            // Only merge the number into the street line when there is no separate house number input to hold it
+            if (address['street_number'] && (streetLines === 1 || !fieldMappings['street_number'])) {
                 component.set('address.street.0', address['street_number'] + ' ' + (address['route'] ?? ""));
                 component.set('address.street.1', "");
             }
