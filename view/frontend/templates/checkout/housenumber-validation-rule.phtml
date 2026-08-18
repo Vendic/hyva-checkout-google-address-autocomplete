@@ -4,13 +4,22 @@ declare(strict_types=1);
 
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
+use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\HyvaCsp;
+use Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\FieldMapping;
 
 // phpcs:disable Generic.Files.LineLength
 
 /** @var Escaper $escaper */
 /** @var Template $block */
 /** @var HyvaCsp $hyvaCsp */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var FieldMapping $fieldMapping */
+$fieldMapping = $viewModels->require(FieldMapping::class);
+if ($fieldMapping->getHouseNumberFieldIndex() === null) {
+    return;
+}
 
 ?>
 <script>
