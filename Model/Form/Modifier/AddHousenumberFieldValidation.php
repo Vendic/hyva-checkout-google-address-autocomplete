@@ -1,15 +1,19 @@
-<?php declare(strict_types=1);
+<?php
+
 /**
  * @copyright   Copyright (c) Vendic B.V https://vendic.nl/
  */
 
+declare(strict_types=1);
+
 namespace Vendic\HyvaCheckoutGoogleAddressAutocomplete\Model\Form\Modifier;
 
+use Hyva\Checkout\Model\Form\AbstractEntityForm;
+use Hyva\Checkout\Model\Form\AbstractEntityFormModifier;
+use Hyva\Checkout\Model\Form\EntityFieldInterface;
 use Hyva\Checkout\Model\Form\EntityFormElementInterface;
-use Hyva\Checkout\Model\Form\EntityFormInterface;
-use Hyva\Checkout\Model\Form\EntityFormModifierInterface;
 
-class AddHousenumberFieldValidation implements EntityFormModifierInterface
+class AddHousenumberFieldValidation extends AbstractEntityFormModifier
 {
     /**
      * Add validation to the housenumber field if street has only one relative, which should mean that there are two
@@ -19,12 +23,12 @@ class AddHousenumberFieldValidation implements EntityFormModifierInterface
      * an housenumber, since it's possible that the API returns an address without a housenumber.
      * If the housenumber is not present, the address is not valid and the customer cannot continue.
      */
-    public function apply(EntityFormInterface $form): EntityFormInterface
+    public function apply(AbstractEntityForm $form): AbstractEntityForm
     {
         $form->registerModificationListener(
             'addValidationToHousenumber',
             'form:build',
-            function (EntityFormInterface $form) {
+            function (AbstractEntityForm $form) {
                 $street = $form->getElement('street');
 
                 if (!$street instanceof EntityFormElementInterface) {
@@ -41,7 +45,7 @@ class AddHousenumberFieldValidation implements EntityFormModifierInterface
 
                 $housenumberField = reset($relatives);
 
-                if (!$housenumberField) {
+                if (!$housenumberField instanceof EntityFieldInterface) {
                     return;
                 }
 

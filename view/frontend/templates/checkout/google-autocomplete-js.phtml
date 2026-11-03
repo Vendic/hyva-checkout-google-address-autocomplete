@@ -9,6 +9,7 @@ use Vendic\GoogleAutocomplete\ViewModel\Settings;
 use Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\AutoCompleteSelectors;
 use Vendic\HyvaCheckoutGoogleAddressAutocomplete\ViewModel\FieldMapping;
 use Hyva\Theme\ViewModel\HyvaCsp;
+use Magewirephp\Magewire\Component;
 
 // phpcs:disable Generic.Files.LineLength
 
@@ -30,6 +31,9 @@ $autocompleteSelectors = $autocompleteSelectorsViewModel->get();
 /** @var FieldMapping $fieldMapping */
 $fieldMapping = $viewModels->require(FieldMapping::class);
 
+// Hyvä Checkout 3 runs on Magewire 3, where the address forms are submitted with submit() instead of save()
+$addressFormSaveMethod = method_exists(Component::class, 'dispatch') ? 'submit' : 'save';
+
 if (!$apiKey) {
     return;
 }
@@ -40,11 +44,20 @@ if (!$apiKey) {
         'use strict';
 
         let googleAutoCompleteInputs = [];
+        let initialized = false;
 
-        // Initialize autocomplete when Magewire is loaded
-        document.addEventListener('magewire:load', () => {
-            initAutoCompleteJS()
-        }, { once: true });
+        // Initialize autocomplete when Magewire is loaded: magewire:init on Magewire 3, magewire:load on Magewire 1
+        const init = () => {
+            if (initialized) {
+                return;
+            }
+
+            initialized = true;
+            initAutoCompleteJS();
+        };
+
+        document.addEventListener('magewire:init', init, { once: true });
+        document.addEventListener('magewire:load', init, { once: true });
 
         // Re-init autocomplete when billing as shipping is toggled
         window.addEventListener('billing-as-shipping-toggled', () => { reInitAutocomplete()} );
@@ -59,7 +72,7 @@ if (!$apiKey) {
         window.addEventListener('google-autocomplete-address-changed', (event) => {
             console.debug(`google-autocomplete-address-changed for ${event.detail.addressType}`, event.detail);
 
-            if (event.detail.addressType == undefined) {
+            if (event.detail.addressType === undefined) {
                 console.error('Cannot find address type for event', event);
                 return;
             }
@@ -87,20 +100,31 @@ if (!$apiKey) {
             const fieldMappings = <?= /* @noEscape */ json_encode($fieldMapping->get()) ?>;
             const streetLines = <?= /* @noEscape */ $streetLinesQty ?>;
 
-            const form = [
-                'address-form',
-                'address-list.form'
+            // The address list form is used when it is on the page, otherwise the address form
+            const forms = [
+                'address-list.form',
+                'address-form'
             ];
 
             let component;
 
-            form.forEach((form) => {
+            for (const form of forms) {
                 try {
-                    component = Magewire.find(`checkout.${addressType}-details.` + form);
+                    // Magewire 3 returns undefined for a missing component, Magewire 1 throws
+                    component = Magewire.find(`checkout.${addressType}-details.${form}`);
                 } catch (e) {
-                    console.debug(`Cannot update Magewire component checkout.${addressType}-details.` + form);
+                    component = undefined;
                 }
-            });
+
+                if (component) {
+                    break;
+                }
+            }
+
+            if (!component) {
+                console.debug(`Cannot find the Magewire address form for ${addressType}`);
+                return;
+            }
 
             Object.keys(fieldMappings).forEach(key => {
                 const value = address[key];
@@ -136,7 +160,7 @@ if (!$apiKey) {
             }
 
 
-            component.save();
+            component['<?= /* @noEscape */ $addressFormSaveMethod ?>']();
         }
 
         /**
