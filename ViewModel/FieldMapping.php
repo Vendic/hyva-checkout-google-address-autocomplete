@@ -19,7 +19,7 @@ class FieldMapping implements ArgumentInterface
     }
 
     /**
-     * returns the index of the house-number field, if it is enabled
+     * Returns the index of the house-number field, if it is enabled
      */
     public function getHouseNumberFieldIndex(): ?int
     {

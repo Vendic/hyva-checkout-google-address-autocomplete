@@ -134,8 +134,14 @@ if (!$apiKey) {
                 component.set(identifier,  valueToSave.join(' '));
             });
 
-            // Only merge the number into the street line when there is no separate house number input to hold it
-            if (address['street_number'] && (streetLines === 1 || !fieldMappings['street_number'])) {
+            // Only merge the number into the street line when the mapping gives it no rendered input to hold it,
+            // either on its own (street_number) or joined with other components (e.g. route+street_number)
+            const streetNumberKey = Object.keys(fieldMappings).find(key => key.split('+').includes('street_number'));
+            const streetNumberLine = /^street\.(\d+)$/.exec(fieldMappings[streetNumberKey] ?? '')?.[1];
+            const streetNumberHasInput = streetNumberKey !== undefined
+                && (streetNumberLine === undefined || Number(streetNumberLine) < streetLines);
+
+            if (address['street_number'] && !streetNumberHasInput) {
                 component.set('address.street.0', address['street_number'] + ' ' + (address['route'] ?? ""));
                 component.set('address.street.1', "");
             }
