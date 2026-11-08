@@ -131,7 +131,7 @@ if (!$apiKey) {
                 const valueToSave = dataKeys.map((key) => address[key]).filter((v) => v);
 
                 const identifier = `address.${fieldMappings[key]}`;
-                component.set(identifier,  valueToSave.join(' '));
+                component.set(identifier, valueToSave.join(' '));
             });
 
             // Only merge the number into the street line when the mapping gives it no rendered input to hold it,
