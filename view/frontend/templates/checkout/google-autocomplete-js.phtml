@@ -44,6 +44,7 @@ if (!$apiKey) {
         'use strict';
 
         let googleAutoCompleteInputs = [];
+        const autocompleteInstances = new WeakMap();
         let initialized = false;
 
         // Initialize autocomplete when Magewire is loaded: magewire:init on Magewire 3, magewire:load on Magewire 1
@@ -210,6 +211,7 @@ if (!$apiKey) {
 
         function setAutoCompleteInputs() {
             const querySelectors = <?= /* @noEscape */ json_encode($autocompleteSelectors) ?>;
+            googleAutoCompleteInputs = [];
 
             // Loop through the query selectors and find the inputs
             querySelectors.forEach(querySelector => {
@@ -244,7 +246,12 @@ if (!$apiKey) {
         function addAutocompleteToInputs() {
             // Loop through the inputs and add Google autocomplete to each input
             googleAutoCompleteInputs.forEach(element => {
+                if (autocompleteInstances.has(element)) {
+                    return;
+                }
+
                 const autocomplete = new window.google.maps.places.Autocomplete(element);
+                autocompleteInstances.set(element, autocomplete);
                 window.google.maps.event.addListener(
                     autocomplete,
                     'place_changed', () => handleResponse(autocomplete.getPlace(), element)
