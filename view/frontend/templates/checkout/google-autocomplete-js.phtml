@@ -43,8 +43,11 @@ if (!$apiKey) {
     (() => {
         'use strict';
 
-        let googleAutoCompleteInputs = [];
+        // Inputs that already have an Autocomplete instance. Magewire can replace an input with a new element
+        // (same id), which then gets its own instance; removed elements drop out of the WeakSet by themselves.
+        const attachedInputs = new WeakSet();
         let initialized = false;
+        let googleLoaded = false;
 
         // Initialize autocomplete when Magewire is loaded: magewire:init on Magewire 3, magewire:load on Magewire 1
         const init = () => {
@@ -66,7 +69,11 @@ if (!$apiKey) {
         window.addEventListener('re-init-google-autocomplete', () => { reInitAutocomplete() });
 
         // Wait for Google Maps JS callback to add autocomplete to specified inputs
-        document.addEventListener('google_maps_js_loaded', () => { addAutocompleteToInputs(); });
+        document.addEventListener('google_maps_js_loaded', () => {
+            googleLoaded = true;
+            addAutocompleteToInputs();
+            observeRenderedInputs();
+        });
 
         // Listen for address changes from Google Autocomplete
         window.addEventListener('google-autocomplete-address-changed', (event) => {
@@ -204,29 +211,48 @@ if (!$apiKey) {
          * Re-initializes the Google Autocomplete functionality.
          */
         function reInitAutocomplete() {
-            setAutoCompleteInputs();
             addAutocompleteToInputs();
         }
 
-        function setAutoCompleteInputs() {
+        /**
+         * Find the inputs that are on the page now.
+         *
+         * @return HTMLInputElement[]
+         */
+        function getAutoCompleteInputs() {
             const querySelectors = <?= /* @noEscape */ json_encode($autocompleteSelectors) ?>;
 
-            // Loop through the query selectors and find the inputs
-            querySelectors.forEach(querySelector => {
-                const input = document.querySelector(querySelector);
-                if (input) {
-                    googleAutoCompleteInputs.push(input);
+            return querySelectors
+                .map(querySelector => document.querySelector(querySelector))
+                .filter(input => input !== null);
+        }
+
+        /**
+         * Magewire renders inputs after the first page load: the billing address form when "same address" is
+         * unticked (Hyvä Checkout 1.3.15+ toggles it in its own SameAddressToggle component, so no
+         * billing-as-shipping-toggled event is sent), a new address form, a form replaced by an update.
+         * Watch the DOM and give every new input its own Autocomplete instance.
+         */
+        function observeRenderedInputs() {
+            let scheduled = false;
+
+            new MutationObserver(() => {
+                if (scheduled) {
+                    return;
                 }
-            });
+
+                scheduled = true;
+                window.requestAnimationFrame(() => {
+                    scheduled = false;
+                    addAutocompleteToInputs();
+                });
+            }).observe(document.body, { childList: true, subtree: true });
         }
 
         /**
          * Initializes Google Maps JS
          */
         function initAutoCompleteJS() {
-
-            setAutoCompleteInputs();
-
             // Add autocomplete JS
             const script = document.createElement('script');
             script.src = 'https://maps.googleapis.com/maps/api/js?key=<?= $escaper->escapeJs($apiKey) ?>&libraries=places&callback=googleReady&region=<?= $escaper->escapeJs($googleAutocompleteSettings->getDefaultCountryId())?>';
@@ -242,8 +268,17 @@ if (!$apiKey) {
          * @returns {void}
          */
         function addAutocompleteToInputs() {
-            // Loop through the inputs and add Google autocomplete to each input
-            googleAutoCompleteInputs.forEach(element => {
+            if (!googleLoaded) {
+                return;
+            }
+
+            // Loop through the inputs and add Google autocomplete to each input that does not have one yet
+            getAutoCompleteInputs().forEach(element => {
+                if (attachedInputs.has(element)) {
+                    return;
+                }
+
+                attachedInputs.add(element);
                 const autocomplete = new window.google.maps.places.Autocomplete(element);
                 window.google.maps.event.addListener(
                     autocomplete,
